@@ -32,7 +32,7 @@ public class SecurityConfiguration {
          */
         http
                 .formLogin()
-                .loginPage("/loginPage")
+//                .loginPage("/loginPage")
                 .defaultSuccessUrl("/hello")
                 .failureUrl("/failhello")
                 .usernameParameter("userId")

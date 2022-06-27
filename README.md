@@ -100,3 +100,20 @@ public class SecurityConfiguration {
  - `.loginPage("/loginPage")`가 작동되지 않았을 때 기본적으로 제공하는 `DefaultLoginPageGeneratingFilter`, `DefaultLogoutPageGeneratingFilter`가 추가되어 동작
  - `.loginPage("/loginPage")`가 작동되었을 때 `UsernamePasswordAuthenticationFilter`만 추가되어 동작
 
+# 2022.06.27
+
+## 알아야할 사항
+ - `UsernamePasswordAuthenticationFilter`필터 과정
+   1. `AbstractAuthenticationProcessingFilter` doFilter가 실행이 되어 아래와 같이 `.loginProcessingUrl("/login_proc")`에서 등록한 URL과 맞는지 검사하고 필터 로직 수행, 아니면 다음 필터로 간다
+      ```
+      if (!requiresAuthentication(request, response)) {
+                chain.doFilter(request, response);
+                return;
+      }
+      ```
+   2. `AbstractAuthenticationProcessingFilter`의 doFilter에서 `Authentication authenticationResult = attemptAuthentication(request, response);`가 실행되어 인증을 시도한다.
+   3. `attemptAuthentication`함수가 실행될 떄 `UsernamePasswordAuthenticationToken authRequest = UsernamePasswordAuthenticationToken.unauthenticated(username, password);`로직이 수행되어 인증되지 않은 `Authentication(=UsernamePasswordAuthenticationToken)` 발급
+   4. 인증되지 않은 `Authentication(=UsernamePasswordAuthenticationToken)`을 `this.getAuthenticationManager().authenticate(authRequest);` 로직처럼 `AuthenticationManager`에게 인증을 위임한다.
+      > `AuthenticationManager`의 구현체는 `ProviderManager`이다
+   5. `ProviderManager`에서 `authenticate`이 수행되어 `AuthenticationProvider`의 구현체인 `DaoAuthenticationProvider`를 통해 아이디, 비밀번호를 통해 회원이 맞는지 검사하고 `Authentication`을 반환, 아니면 예외 발생 
+   6. 반환된 `Authentication`를 통해  `successfulAuthentication(request, response, chain, authenticationResult);` 로직을 통해 `SecurityContext`에 `Authentication`을 저장하고 `successHandler` 작동 
