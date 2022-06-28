@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<header th:fragment="headerFragment">
+    <div class="navbar bg-neutral fixed inset-x-0 top-0 px-11">
+        <div class="navbar-start">
+            <a th:href="@{/}" class="btn btn-primary btn-sm">Home</a>
+        </div>
+        <div class="navbar-center"></div>
+
+        <div class="navbar-end space-x-2">
+            <div class="btn-group">
+                <a th:href="@{/message}" class="btn btn-primary btn-sm">message</a>
+                <a th:href="@{/myPage}" class="btn btn-primary btn-sm">mypage</a>
+                <a th:href="@{/config}" class="btn btn-primary btn-sm">config</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+</html>

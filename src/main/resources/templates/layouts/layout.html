@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+    <html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+    <head>
+        <meta charset="UTF-8" />
+    <!--    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">-->
+        <link th:href="@{/css/tailwind.output.css}" rel="stylesheet">
+    </head>
+
+    <body class="flex flex-col min-h-screen">
+        <header th:replace="layouts/header :: headerFragment"></header>
+
+        <section layout:fragment="content" class="mt-16 flex-1">
+            <div>내용</div>
+        </section>
+
+        <footer th:replace="layouts/footer :: footerFragment"></footer>
+
+        <!--<script th:src="@{/js/common.js}"></script>-->
+        <script src="http://code.jquery.com/jquery-latest.js"></script>
+        <script layout:fragment="javascript" type="text/javascript"></script>
+    </body>
+</html>

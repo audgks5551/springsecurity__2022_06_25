@@ -117,3 +117,43 @@ public class SecurityConfiguration {
       > `AuthenticationManager`의 구현체는 `ProviderManager`이다
    5. `ProviderManager`에서 `authenticate`이 수행되어 `AuthenticationProvider`의 구현체인 `DaoAuthenticationProvider`를 통해 아이디, 비밀번호를 통해 회원이 맞는지 검사하고 `Authentication`을 반환, 아니면 예외 발생 
    6. 반환된 `Authentication`를 통해  `successfulAuthentication(request, response, chain, authenticationResult);` 로직을 통해 `SecurityContext`에 `Authentication`을 저장하고 `successHandler` 작동 
+
+# 2022.06.28
+
+## 타임리프 설정
+ - 의존성 추가
+    ```
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:2.7.1'
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.1.0'
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
+    ```
+## tailwind 설정 및 daisy ui 설정
+ - 라이브러리 추가
+    ```bash
+    npm i --prefix . -D tailwindcss
+    npx tailwindcss init
+    npm i daisyui
+    ```
+ - `package.json` 스크립트 작성
+    ```
+    "scripts": {
+        "css": "npx tailwindcss -i ./src/main/resources/static/css/tailwind.source.css -o ./src/main/resources/static/css/tailwind.output.css --watch"
+      },
+    ```
+ - `tailwind.config.js` 설정
+    ```js
+    module.exports = {
+      mode: "jit",
+      content: ["./src/main/resources/templates/**/*.{html,js}"],
+      theme: {
+        extend: {},
+      },
+      plugins: [require("daisyui")],
+    }
+    ```
+ - 링크 참고
+   - [https://tailwindcss.com/docs/installation](https://tailwindcss.com/docs/installation)
+   - [https://daisyui.com/docs/install/](https://daisyui.com/docs/install/)
+
+## spring boot devtools 설정
+ - [https://shanepark.tistory.com/215](https://shanepark.tistory.com/215)

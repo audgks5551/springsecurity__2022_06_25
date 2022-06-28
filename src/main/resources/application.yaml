@@ -1,5 +1,19 @@
 spring:
+  thymeleaf:
+    enabled: true
+    cache: false
+    prefix: classpath:templates/
+  freemarker:
+    cache: false
   security:
     user:
       name: testuser
       password: test1234
+  devtools:
+    livereload:
+      enabled: true
+
+logging:
+  level:
+    root: info
+    com.example.springsecurity: debug
