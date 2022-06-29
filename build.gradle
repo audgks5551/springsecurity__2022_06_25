@@ -25,6 +25,9 @@ dependencies {
      */
     implementation 'org.springframework.boot:spring-boot-starter-security:2.7.1'
 
+    /**
+     * 타임리프
+     */
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:2.7.1'
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.1.0'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'

@@ -3,15 +3,31 @@ spring:
     enabled: true
     cache: false
     prefix: classpath:templates/
+
   freemarker:
     cache: false
-  security:
-    user:
-      name: testuser
-      password: test1234
+
   devtools:
     livereload:
       enabled: true
+    restart:
+      enabled: true
+
+  datasource:
+    hikari:
+      jdbc-url: jdbc:mysql://localhost:3306/springsecurity?useUnicode=true&characterEncoding=utf8
+      username: testuser
+      password: 5678
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    properties:
+      hibernate:
+        format_sql: true
+        show-sql: true
 
 logging:
   level:

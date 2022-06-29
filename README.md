@@ -157,3 +157,93 @@ public class SecurityConfiguration {
 
 ## spring boot devtools 설정
  - [https://shanepark.tistory.com/215](https://shanepark.tistory.com/215)
+
+
+# 2022.06.29
+
+## spring security documentation links
+ - [https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)
+ - [https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/index.html](https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/index.html)
+ - [https://www.codejava.net/frameworks/spring-boot/fix-websecurityconfigureradapter-deprecated](https://www.codejava.net/frameworks/spring-boot/fix-websecurityconfigureradapter-deprecated)
+
+## 주의 사항
+ - `.antMatchers("/message").hasRole("MANAGER")`는 `/message`만 적용
+ - `.mvcMatchers("/message").hasRole("MANAGER")`는 `/message`와 `/message/` 등등 spring mvc 패턴이 적용
+ - 결론은 `.mvcMatchers`이 더 안전함, 그러나 `.antMatchers`도 잘 사용하면 안전함 (예로는 `.antMatchers("/message/**").hasRole("MANAGER")`) 
+ - [https://netmarble.engineering/spring-security-path-matching-inconsistency-cve-2016-5007/](https://netmarble.engineering/spring-security-path-matching-inconsistency-cve-2016-5007/)
+ > 화이트리스트는 허용하는 조건 이외에는 모두 차단하는 접근 제어 방식입니다. 반대로, 블랙리스트는 차단하는 조건 이외에는 모두 허용하는 접근 제어 방식입니다.
+
+## 알아야할 사항
+```java
+@Configuration
+public class SecurityConfiguration {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http
+                .authorizeRequests((authorizeRequests) -> authorizeRequests
+                        .antMatchers("/").permitAll()
+                        .antMatchers("/myPage").hasRole("USER")
+                        .antMatchers("/message").hasRole("MANAGER")
+                        .antMatchers("/config").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .formLogin()
+                .permitAll();
+
+        return http.build();
+    }
+
+    /**
+     * 사용자 생성
+     */
+    @Bean
+    public UserDetailsService users() {
+        UserDetails user = User.builder()
+                .username("user")
+                .password("{noop}pass")
+                .roles("USER")
+                .build();
+
+        UserDetails manager = User.builder()
+                .username("manager")
+                .password(passwordEncoder().encode("pass"))
+                .roles("USER", "MANAGER")
+                .build();
+
+        UserDetails admin = User.builder()
+                .username("admin")
+                .password(passwordEncoder().encode("pass"))
+                .roles("USER", "ADMIN", "MANAGER")
+                .build();
+
+        return new InMemoryUserDetailsManager(user, admin, manager);
+    }
+
+    /**
+     * 패스워드 암호화
+     *  - 인코딩시 BCryptPasswordEncoder 방식 사용
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    /**
+     * static 디렉터리의 하위 파일 목록은 무시
+     *  - 보안 필터를 거치지 않는다
+     */
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
+    }
+}
+```
+ - `PasswordEncoderFactories.createDelegatingPasswordEncoder().encode()`를 통해 암호화
+ - `PasswordEncoderFactories.createDelegatingPasswordEncoder().match()`를 통해 복호화
+    ```
+    boolean matches = passwordEncoder().matches("pass", passwordEncoder().encode("pass"));
+    System.out.println(matches); // true
+    ```
+

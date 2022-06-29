@@ -1,10 +1,18 @@
 package com.example.springsecurity;
 
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -24,13 +32,13 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .authorizeRequests()
-                .anyRequest().authenticated();
-
-        /**
-         * form 로그인 활성화
-         */
-        http
+                .authorizeRequests((authorizeRequests) -> authorizeRequests
+                        .antMatchers("/").permitAll()
+                        .antMatchers("/myPage").hasRole("USER")
+                        .antMatchers("/message").hasRole("MANAGER")
+                        .antMatchers("/config").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
                 .formLogin()
 //                .loginPage("/loginPage")
                 .defaultSuccessUrl("/")
@@ -55,5 +63,49 @@ public class SecurityConfiguration {
                 .permitAll();
 
         return http.build();
+    }
+
+    /**
+     * 사용자 생성
+     */
+    @Bean
+    public UserDetailsService users() {
+        UserDetails user = User.builder()
+                .username("user")
+                .password("{noop}pass")
+                .roles("USER")
+                .build();
+
+        UserDetails manager = User.builder()
+                .username("manager")
+                .password(passwordEncoder().encode("pass"))
+                .roles("USER", "MANAGER")
+                .build();
+
+        UserDetails admin = User.builder()
+                .username("admin")
+                .password(passwordEncoder().encode("pass"))
+                .roles("USER", "ADMIN", "MANAGER")
+                .build();
+
+        return new InMemoryUserDetailsManager(user, admin, manager);
+    }
+
+    /**
+     * 패스워드 암호화
+     *  - 인코딩시 BCryptPasswordEncoder 방식 사용
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    /**
+     * static 디렉터리의 하위 파일 목록은 무시
+     *  - 보안 필터를 거치지 않는다
+     */
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
 }
