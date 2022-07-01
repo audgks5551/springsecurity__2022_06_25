@@ -9,25 +9,25 @@ spring:
 
   devtools:
     livereload:
-      enabled: true
+      enabled: false
     restart:
-      enabled: true
+      enabled: false
 
   datasource:
-    hikari:
-      jdbc-url: jdbc:mysql://localhost:3306/springsecurity?useUnicode=true&characterEncoding=utf8
-      username: testuser
-      password: 5678
-      driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/springsecurity?useUnicode=true&characterEncoding=utf8
+    username: testuser
+    password: 5678
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
-    hibernate:
-      ddl-auto: create
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     properties:
       hibernate:
+        show_sql: true
         format_sql: true
-        show-sql: true
+        use_sql_comments: true
+    hibernate:
+      ddl-auto: create-drop
+
 
 logging:
   level:

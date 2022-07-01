@@ -33,7 +33,7 @@ public class SecurityConfiguration {
 
         http
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .antMatchers("/").permitAll()
+                        .antMatchers("/", "/users").permitAll()
                         .antMatchers("/myPage").hasRole("USER")
                         .antMatchers("/message").hasRole("MANAGER")
                         .antMatchers("/config").hasRole("ADMIN")

@@ -247,3 +247,103 @@ public class SecurityConfiguration {
     System.out.println(matches); // true
     ```
 
+
+# 2022.07.01
+
+## 알아야할 사항
+
+### 타임리프 layout 템플릿 만들기
+
+ - `layouts/layout`
+```html
+<!DOCTYPE html>
+    <html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+    <head>
+        <meta charset="UTF-8" />
+        <link th:href="@{/css/tailwind.output.css}" rel="stylesheet">
+    </head>
+
+    <body class="flex flex-col min-h-screen">
+        <header th:replace="layouts/header :: headerFragment"></header>
+
+        <section layout:fragment="content" class="mt-16 flex-1">
+            <div>내용</div>
+        </section>
+
+        <footer th:replace="layouts/footer :: footerFragment"></footer>
+        
+        <script src="http://code.jquery.com/jquery-latest.js"></script>
+        <script layout:fragment="javascript" type="text/javascript"></script>
+    </body>
+</html>
+```
+
+ - `layouts/header`
+```html
+<!DOCTYPE html>
+<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+    <header th:fragment="headerFragment">
+        <div>header</div>
+    </header>
+
+</html>
+```
+
+ - `layouts/footer`
+```html
+<!DOCTYPE html>
+<html>
+
+    <footer th:fragment="footerFragment">
+        <div>footer</div>
+    </footer>
+
+</html>
+```
+
+ - template (이걸 들고 계속 페이지 생성하면 됨)
+```html
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout.html}">
+
+    <head>
+        <title>template</title>
+    </head>
+    
+    <body>
+        <section layout:fragment="content">
+            <span>template</span>
+        </section>
+    </body>
+
+</html>
+```
+
+ - form 
+```html
+<form th:action="@{/users}" method="POST" th:object="${userForm}"  class="card-body">
+
+    <!-- username -->
+    <label th:for="*{username}"></label>
+    <input th:field="*{username}" type="text" placeholder="username"/>
+    
+    <!-- password -->
+    <label th:for="*{password}"></label>
+    <input th:field="*{password}" type="password" placeholder="password" />
+    
+    <!-- email -->
+    <label th:for="*{email}"></label>
+    <input th:field="*{email}" type="email" placeholder="email" />
+    
+    <!-- age -->
+    <label th:for="*{age}"></label>
+    <input th:field="*{age}" type="number" placeholder="age" />
+    
+    <!-- signup button -->
+    <button type="submit">Sign Up</button>
+
+</form>
+```
