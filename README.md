@@ -347,3 +347,77 @@ public class SecurityConfiguration {
 
 </form>
 ```
+
+# 2022.07.04
+
+## 알아야할 사항
+ 
+```java
+@Service
+@RequiredArgsConstructor
+public class CustomUserDetailsService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Account account = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("UsernameNotFoundException"));
+
+        return new AccountContext(account, Arrays.asList(new SimpleGrantedAuthority(account.getRole())));
+    }
+}
+```
+ - 유저의 아이디로 DB에서 유저가 있는지 확인한 후 AccountContext(=User) 객체 반환
+
+```java
+public class AccountContext extends User {
+
+    private final Account account;
+
+    public AccountContext(Account account, Collection<? extends GrantedAuthority> authorities) {
+        super(account.getUsername(), account.getPassword(), authorities);
+
+        this.account = account;
+    }
+}
+```
+ - `User`를 상속받아 커스텀 유저 클래스 만들기
+
+```java
+@Controller
+@RequiredArgsConstructor
+public class CustomAuthenticationProvider implements AuthenticationProvider {
+
+    private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
+
+    /**
+     * 인증되지 않은 Authentication을 검증을 겨쳐 인증된 Authentication을 반환
+     */
+    @Override
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        String username = authentication.getName();
+        String password = (String) authentication.getCredentials();
+
+        AccountContext accountContext = (AccountContext) userDetailsService.loadUserByUsername(username);
+
+        if (!passwordEncoder.matches(password, accountContext.getPassword())) {
+            throw new BadCredentialsException("BadCredentialsException");
+        }
+
+        return new UsernamePasswordAuthenticationToken(
+                accountContext.getAccount(),
+                null,
+                accountContext.getAuthorities()
+        );
+    }
+
+    @Override
+    public boolean supports(Class<?> authentication) {
+        return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+    }
+}
+```
+ - `AuthenticationProvider`는 마치 `controller`를 역핧을 하듯이 `service`를 불러오고 인증이 되면 인증이 된 `authentication`을 반환한다.
+

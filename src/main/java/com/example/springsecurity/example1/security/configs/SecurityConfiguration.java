@@ -1,5 +1,7 @@
-package com.example.springsecurity;
+package com.example.springsecurity.example1.security.configs;
 
+import com.example.springsecurity.example1.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,12 +9,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -26,7 +24,10 @@ import java.io.IOException;
  * spring security 환경 설정 클래스
  */
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfiguration {
+
+    private final UserRepository userRepository;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -63,32 +64,6 @@ public class SecurityConfiguration {
                 .permitAll();
 
         return http.build();
-    }
-
-    /**
-     * 사용자 생성
-     */
-    @Bean
-    public UserDetailsService users() {
-        UserDetails user = User.builder()
-                .username("user")
-                .password("{noop}pass")
-                .roles("USER")
-                .build();
-
-        UserDetails manager = User.builder()
-                .username("manager")
-                .password(passwordEncoder().encode("pass"))
-                .roles("USER", "MANAGER")
-                .build();
-
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("pass"))
-                .roles("USER", "ADMIN", "MANAGER")
-                .build();
-
-        return new InMemoryUserDetailsManager(user, admin, manager);
     }
 
     /**
