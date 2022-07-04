@@ -3,7 +3,7 @@ package com.example.springsecurity.example1.form;
 import lombok.Data;
 
 @Data
-public class UserForm {
+public class SignUpForm {
     private String username;
     private String password;
     private String email;

@@ -1,7 +1,8 @@
 package com.example.springsecurity.example1.controller.user;
 
 import com.example.springsecurity.example1.domain.AccountDto;
-import com.example.springsecurity.example1.form.UserForm;
+import com.example.springsecurity.example1.form.LoginForm;
+import com.example.springsecurity.example1.form.SignUpForm;
 import com.example.springsecurity.example1.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -20,18 +21,23 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public String createUserForm(UserForm userForm) {
+    public String createUserForm(SignUpForm signUpForm) {
         return "user/login/register";
     }
 
     @PostMapping("/users")
-    public String createUser(UserForm userForm) {
+    public String createUser(SignUpForm signUpForm) {
 
         ModelMapper mapper = new ModelMapper();
-        AccountDto accountDto = mapper.map(userForm, AccountDto.class);
+        AccountDto accountDto = mapper.map(signUpForm, AccountDto.class);
 
         userService.createUser(accountDto);
 
         return "redirect:/";
+    }
+
+    @GetMapping("/login")
+    public String loginForm(LoginForm loginForm) {
+        return "user/login/login";
     }
 }
