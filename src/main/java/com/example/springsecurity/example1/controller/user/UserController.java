@@ -10,8 +10,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +24,12 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/myPage")
-    public String myPage() {
+    public String myPage(@RequestParam(value = "success", required = false) String success,
+                         @RequestParam(value = "message", required = false) String message,
+                         Model model) {
+
+        model.addAttribute("success", success);
+        model.addAttribute("successMessage", message);
         return "user/myPage";
     }
 
@@ -43,7 +50,15 @@ public class UserController {
     }
 
     @GetMapping("/login")
-    public String loginForm(LoginForm loginForm) {
+    public String loginForm(
+            @RequestParam(value = "exception", required = false) String exception,
+            @RequestParam(value = "error", required = false) String error,
+            LoginForm loginForm,
+            Model model
+    ) {
+        model.addAttribute("error", error);
+        model.addAttribute("errorMessage", exception);
+
         return "user/login/login";
     }
 

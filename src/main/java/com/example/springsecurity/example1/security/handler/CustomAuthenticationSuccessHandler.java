@@ -1,5 +1,6 @@
 package com.example.springsecurity.example1.security.handler;
 
+import com.example.springsecurity.example1.domain.Account;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -11,6 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
 
 @Component
 public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -22,11 +24,16 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         SavedRequest savedRequest = requestCache.getRequest(request, response);
 
+        Account account = (Account) authentication.getPrincipal();
+        String username = account.getUsername();
+
+        String message = String.format("%s님 환영합니다", username);
+        message = URLEncoder.encode(message, "UTF-8");
         if (savedRequest != null) {
             String redirectUrl = savedRequest.getRedirectUrl();
-            getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+            getRedirectStrategy().sendRedirect(request, response, String.format("%s?success=true&message=%s", redirectUrl, message));
         } else {
-            getRedirectStrategy().sendRedirect(request, response, getDefaultTargetUrl());
+            getRedirectStrategy().sendRedirect(request, response, String.format("%s?success=true&message=%s", getDefaultTargetUrl(), message));
         }
     }
 }

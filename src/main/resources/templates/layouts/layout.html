@@ -10,6 +10,27 @@
     <body class="flex flex-col min-h-screen">
         <header th:replace="layouts/header :: headerFragment"></header>
 
+        <div class="fixed left-2 right-2 top-[4.3rem] flex flex-col space-y-1">
+            <div id="error__message" th:if="${error}" class="alert alert-error shadow-lg">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-8 w-8" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span th:text="${errorMessage}">Error! Task failed successfully.</span>
+                </div>
+                <button class="btn btn-circle btn-outline border-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div id="success__message" th:if="${success}" class="alert alert-success shadow-lg">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span th:text="${successMessage}">Your purchase has been confirmed!</span>
+                </div>
+                <button class="btn btn-circle btn-outline border-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+        </div>
+
         <section layout:fragment="content" class="flex-1">
             <div>내용</div>
         </section>
@@ -19,5 +40,20 @@
         <!--<script th:src="@{/js/common.js}"></script>-->
         <script src="http://code.jquery.com/jquery-latest.js"></script>
         <script layout:fragment="javascript" type="text/javascript"></script>
+
+        <script type="text/javascript">
+            $("#success__message > button").click(() => {
+                $("#success__message").hide();
+            })
+
+            $("#error__message > button").click(() => {
+                $("#error__message").hide();
+            })
+
+            const timer = setInterval(() => {
+                $("#success__message").hide();
+                clearInterval(timer);
+            }, 5000);
+        </script>
     </body>
 </html>

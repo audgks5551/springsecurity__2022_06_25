@@ -1,5 +1,3 @@
-
-
 spring:
   thymeleaf:
     enabled: true
@@ -11,9 +9,9 @@ spring:
 
   devtools:
     livereload:
-      enabled: false
+      enabled: true
     restart:
-      enabled: false
+      enabled: true
 
   datasource:
     url: jdbc:mysql://localhost:3306/springsecurity?useUnicode=true&characterEncoding=utf8
@@ -30,6 +28,10 @@ spring:
     hibernate:
       ddl-auto: create
 
+  security:
+    user:
+      name: user
+      password: 1111
 
 logging:
   level:
@@ -37,4 +39,4 @@ logging:
     com.example.springsecurity: debug
 
 server:
-  port: 8282
+  port: 8283

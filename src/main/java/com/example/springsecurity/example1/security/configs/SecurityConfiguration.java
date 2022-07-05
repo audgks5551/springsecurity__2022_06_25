@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 /**
@@ -21,6 +22,7 @@ public class SecurityConfiguration {
 
     private final AuthenticationDetailsSource authenticationDetailsSource;
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
+    private final AuthenticationFailureHandler authenticationFailureHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -30,7 +32,7 @@ public class SecurityConfiguration {
                  * 인가
                  */
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .antMatchers("/", "/users").permitAll()
+                        .antMatchers("/", "/users", "/login*").permitAll()
                         .antMatchers("/myPage").hasRole("USER")
                         .antMatchers("/message").hasRole("MANAGER")
                         .antMatchers("/config").hasRole("ADMIN")
@@ -48,6 +50,7 @@ public class SecurityConfiguration {
                 .failureUrl("/login")
                 .authenticationDetailsSource(authenticationDetailsSource)
                 .successHandler(authenticationSuccessHandler)
+                .failureHandler(authenticationFailureHandler)
                 .permitAll();
 
         return http.build();
@@ -68,6 +71,7 @@ public class SecurityConfiguration {
      */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
+        return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations())
+                .antMatchers("/error");
     }
 }
