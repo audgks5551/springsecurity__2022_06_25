@@ -439,3 +439,94 @@ public String logout(HttpServletRequest request, HttpServletResponse response) {
 ```
  - `request`, `response`, `authentication`을 통해 로그아웃 처리
 
+```java
+public class UsernamePasswordAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+	@Override
+	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+			throws AuthenticationException {
+		if (this.postOnly && !request.getMethod().equals("POST")) {
+			throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
+		}
+		String username = obtainUsername(request);
+		username = (username != null) ? username.trim() : "";
+		String password = obtainPassword(request);
+		password = (password != null) ? password : "";
+		UsernamePasswordAuthenticationToken authRequest = UsernamePasswordAuthenticationToken.unauthenticated(username,
+				password);
+		// Allow subclasses to set the "details" property
+		setDetails(request, authRequest); // 이부분
+		return this.getAuthenticationManager().authenticate(authRequest);
+	}
+
+	protected void setDetails(HttpServletRequest request, UsernamePasswordAuthenticationToken authRequest) {
+		authRequest.setDetails(this.authenticationDetailsSource.buildDetails(request)); // `authenticationDetailsSource`를 커스텀
+	}
+}
+```
+ - `UsernamePasswordAuthenticationFilter`는 object 객체를 담을 수 있기 때문에 로그인 처리를 할 때 사용자의 상세정보를 `Details`에 담을 수 있다.
+ 
+```java
+@Component
+public class FormAuthenticationDetailsSource implements AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> {
+
+    @Override
+    public WebAuthenticationDetails buildDetails(HttpServletRequest context) {
+        return new FormWebAuthenticationDetails(context);
+    }
+}
+```
+ - `setDetails()`에서 `FormAuthenticationDetailsSource.buildDetails()`를 호출 
+```java
+public class FormWebAuthenticationDetails extends WebAuthenticationDetails {
+
+    private String secretKey;
+
+    public FormWebAuthenticationDetails(HttpServletRequest request) {
+        super(request);
+        secretKey = request.getParameter("secret_key"); // `input name`이 `secret_key`인 값을 가져옴 
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+}
+```
+
+```java
+@Configuration
+@RequiredArgsConstructor
+public class SecurityConfiguration {
+
+    private final AuthenticationDetailsSource authenticationDetailsSource;
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http
+                /**
+                 * 인가
+                 */
+                .authorizeRequests((authorizeRequests) -> authorizeRequests
+                        .antMatchers("/", "/users").permitAll()
+                        .antMatchers("/myPage").hasRole("USER")
+                        .antMatchers("/message").hasRole("MANAGER")
+                        .antMatchers("/config").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                /**
+                 * 인증
+                 */
+                .formLogin()
+                .loginPage("/login")
+                .loginProcessingUrl("/login_proc")
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .defaultSuccessUrl("/")
+                .failureUrl("/login")
+                .authenticationDetailsSource(authenticationDetailsSource) // 여기에 등록
+                .permitAll();
+
+        return http.build();
+    }
+}
+```

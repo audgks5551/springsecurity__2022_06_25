@@ -19,6 +19,8 @@
                         <form th:action="@{/login_proc}" method="POST" th:object="${loginForm}"  class="card-body">
                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
+                            <input th:type="hidden" name="secret_key" th:value="hello" />
+
                             <!-- username -->
                             <div class="form-control">
                                 <label th:for="*{username}" class="label">
