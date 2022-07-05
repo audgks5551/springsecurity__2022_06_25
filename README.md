@@ -553,3 +553,34 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 ```
  - `AuthenticationSuccessHandler` 구현
  - 로그인 성공 후 이전 페이지로 이동 구현
+
+```java
+public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+
+    private String errorPage;
+
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+            String deniedUrl = errorPage + "?exception=" + accessDeniedException.getMessage();
+            response.sendRedirect(deniedUrl);
+    }
+
+    public void setErrorPage(String errorPage) {
+        this.errorPage = errorPage;
+    }
+}
+```
+```java
+@Bean
+public AccessDeniedHandler accessDeniedHandler() {
+    CustomAccessDeniedHandler customAccessDeniedHandler = new CustomAccessDeniedHandler();
+    customAccessDeniedHandler.setErrorPage("/denied");
+    return customAccessDeniedHandler;
+}
+```
+```
+.exceptionHandling()
+.accessDeniedHandler(accessDeniedHandler());
+```
+ - 인증처리가 끝나고 권한이 없는 페이지에 들어왔을 때에 페이지를 커스텀하기 위해 `AccessDeniedHandler`를 구현하여 `/denied` `URL`로 이동
+ - 즉, 403에러 처리

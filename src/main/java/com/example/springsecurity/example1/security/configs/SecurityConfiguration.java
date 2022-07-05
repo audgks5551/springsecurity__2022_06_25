@@ -1,5 +1,6 @@
 package com.example.springsecurity.example1.security.configs;
 
+import com.example.springsecurity.example1.security.handler.CustomAccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
@@ -31,29 +33,45 @@ public class SecurityConfiguration {
                 /**
                  * 인가
                  */
-                .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .antMatchers("/", "/users", "/login*").permitAll()
-                        .antMatchers("/myPage").hasRole("USER")
-                        .antMatchers("/message").hasRole("MANAGER")
-                        .antMatchers("/config").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                .authorizeRequests((authorizeRequests) ->
+                        authorizeRequests
+                            .antMatchers("/", "/users", "/login*").permitAll()
+                            .antMatchers("/myPage").hasRole("USER")
+                            .antMatchers("/message").hasRole("MANAGER")
+                            .antMatchers("/config").hasRole("ADMIN")
+                            .anyRequest().authenticated()
                 )
                 /**
                  * 인증
                  */
-                .formLogin()
-                .loginPage("/login")
-                .loginProcessingUrl("/login_proc")
-                .usernameParameter("username")
-                .passwordParameter("password")
-                .defaultSuccessUrl("/")
-                .failureUrl("/login")
-                .authenticationDetailsSource(authenticationDetailsSource)
-                .successHandler(authenticationSuccessHandler)
-                .failureHandler(authenticationFailureHandler)
-                .permitAll();
+                .formLogin(formLogin ->
+                        formLogin
+                                .loginPage("/login")
+                                .loginProcessingUrl("/login_proc")
+                                .usernameParameter("username")
+                                .passwordParameter("password")
+                                .defaultSuccessUrl("/")
+                                .failureUrl("/login")
+                                .authenticationDetailsSource(authenticationDetailsSource)
+                                .successHandler(authenticationSuccessHandler)
+                                .failureHandler(authenticationFailureHandler)
+                                .permitAll()
+                )
+
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler());
 
         return http.build();
+    }
+
+    /**
+     * 권한 없는 페이지에 들어왔을 때의 페이지를 설정
+     */
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        CustomAccessDeniedHandler customAccessDeniedHandler = new CustomAccessDeniedHandler();
+        customAccessDeniedHandler.setErrorPage("/denied");
+        return customAccessDeniedHandler;
     }
 
     /**
