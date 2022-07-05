@@ -421,3 +421,21 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 ```
  - `AuthenticationProvider`는 마치 `controller`를 역핧을 하듯이 `service`를 불러오고 인증이 되면 인증이 된 `authentication`을 반환한다.
 
+# 2022.07.05
+
+## 알아야할 사항
+
+```java
+@GetMapping("/logout")
+public String logout(HttpServletRequest request, HttpServletResponse response) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication != null) {
+        new SecurityContextLogoutHandler().logout(request, response, authentication);
+    }
+
+    return "redirect:/login";
+}
+```
+ - `request`, `response`, `authentication`을 통해 로그아웃 처리
+
