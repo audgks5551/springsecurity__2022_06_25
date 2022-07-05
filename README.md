@@ -530,3 +530,26 @@ public class SecurityConfiguration {
     }
 }
 ```
+
+```java
+@Component
+public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+    private RequestCache requestCache = new HttpSessionRequestCache();
+
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+
+        SavedRequest savedRequest = requestCache.getRequest(request, response);
+
+        if (savedRequest != null) {
+            String redirectUrl = savedRequest.getRedirectUrl();
+            getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+        } else {
+            getRedirectStrategy().sendRedirect(request, response, getDefaultTargetUrl());
+        }
+    }
+}
+```
+ - `AuthenticationSuccessHandler` 구현
+ - 로그인 성공 후 이전 페이지로 이동 구현
