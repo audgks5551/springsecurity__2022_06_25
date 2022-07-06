@@ -1,17 +1,18 @@
 package com.example.springsecurity.example1.security.configs;
 
-import com.example.springsecurity.example1.security.handler.CustomAccessDeniedHandler;
-import lombok.RequiredArgsConstructor;
+import com.example.springsecurity.example1.security.handler.FormAccessDeniedHandler;
+import com.example.springsecurity.example1.security.handler.FormAuthenticationFailureHandler;
+import com.example.springsecurity.example1.security.handler.FormAuthenticationSuccessHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -21,16 +22,21 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
  * spring security 환경 설정 클래스
  */
 @Order(1)
-@Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
-public class SecurityConfiguration {
-    private final AuthenticationDetailsSource authenticationDetailsSource;
-    private final AuthenticationSuccessHandler authenticationSuccessHandler;
-    private final AuthenticationFailureHandler authenticationFailureHandler;
+public class FormSecurityConfig {
+    private AuthenticationDetailsSource authenticationDetailsSource;
+    private AuthenticationProvider authenticationProvider;
+
+    @Autowired
+    public FormSecurityConfig(
+            AuthenticationDetailsSource authenticationDetailsSource,
+            @Qualifier("FormAuthenticationProvider") AuthenticationProvider authenticationProvider) {
+        this.authenticationDetailsSource = authenticationDetailsSource;
+        this.authenticationProvider = authenticationProvider;
+    }
 
     @Bean
-    public SecurityFilterChain FormFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain formFilterChain(HttpSecurity http) throws Exception {
 
         http
                 /**
@@ -56,8 +62,8 @@ public class SecurityConfiguration {
                                 .defaultSuccessUrl("/")
                                 .failureUrl("/login")
                                 .authenticationDetailsSource(authenticationDetailsSource)
-                                .successHandler(authenticationSuccessHandler)
-                                .failureHandler(authenticationFailureHandler)
+                                .successHandler(formAuthenticationSuccessHandler())
+                                .failureHandler(formAuthenticationFailureHandler())
                                 .permitAll()
                 )
                 /**
@@ -66,7 +72,8 @@ public class SecurityConfiguration {
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer
                                 .accessDeniedHandler(accessDeniedHandler())
-                );
+                )
+                .authenticationProvider(authenticationProvider);
 
         return http.build();
     }
@@ -76,18 +83,9 @@ public class SecurityConfiguration {
      */
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
-        CustomAccessDeniedHandler customAccessDeniedHandler = new CustomAccessDeniedHandler();
+        FormAccessDeniedHandler customAccessDeniedHandler = new FormAccessDeniedHandler();
         customAccessDeniedHandler.setErrorPage("/denied");
         return customAccessDeniedHandler;
-    }
-
-    /**
-     * 패스워드 암호화
-     *  - 인코딩시 BCryptPasswordEncoder 방식 사용
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     /**
@@ -98,5 +96,21 @@ public class SecurityConfiguration {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations())
                 .antMatchers("/error");
+    }
+
+    /**
+     * formAuthenticationSuccessHandler 빈 등록
+     */
+    @Bean
+    public AuthenticationSuccessHandler formAuthenticationSuccessHandler() {
+        return new FormAuthenticationSuccessHandler();
+    }
+
+    /**
+     * formAuthenticationFailureHandler 빈 등록
+     */
+    @Bean
+    public AuthenticationFailureHandler formAuthenticationFailureHandler() {
+        return new FormAuthenticationFailureHandler();
     }
 }
