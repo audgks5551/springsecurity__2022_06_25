@@ -1,4 +1,4 @@
-package com.example.springsecurity.example1.security.controller;
+package com.example.springsecurity.example1.security.provider;
 
 import com.example.springsecurity.example1.security.common.FormWebAuthenticationDetails;
 import com.example.springsecurity.example1.security.entity.AccountContext;

@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,28 +20,29 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 /**
  * spring security 환경 설정 클래스
  */
+@Order(1)
 @Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
-
     private final AuthenticationDetailsSource authenticationDetailsSource;
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
     private final AuthenticationFailureHandler authenticationFailureHandler;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain FormFilterChain(HttpSecurity http) throws Exception {
 
         http
                 /**
                  * 인가
                  */
-                .authorizeRequests((authorizeRequests) ->
+                .authorizeRequests(authorizeRequests ->
                         authorizeRequests
-                            .antMatchers("/", "/users", "/login*").permitAll()
-                            .antMatchers("/myPage").hasRole("USER")
-                            .antMatchers("/message").hasRole("MANAGER")
-                            .antMatchers("/config").hasRole("ADMIN")
-                            .anyRequest().authenticated()
+                                .antMatchers("/", "/users", "/login*").permitAll()
+                                .antMatchers("/myPage").hasRole("USER")
+                                .antMatchers("/message").hasRole("MANAGER")
+                                .antMatchers("/config").hasRole("ADMIN")
+                                .anyRequest().authenticated()
                 )
                 /**
                  * 인증
@@ -57,9 +60,13 @@ public class SecurityConfiguration {
                                 .failureHandler(authenticationFailureHandler)
                                 .permitAll()
                 )
-
-                .exceptionHandling()
-                .accessDeniedHandler(accessDeniedHandler());
+                /**
+                 * 403 에러처리
+                 */
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer
+                                .accessDeniedHandler(accessDeniedHandler())
+                );
 
         return http.build();
     }

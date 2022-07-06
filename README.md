@@ -584,3 +584,57 @@ public AccessDeniedHandler accessDeniedHandler() {
 ```
  - 인증처리가 끝나고 권한이 없는 페이지에 들어왔을 때에 페이지를 커스텀하기 위해 `AccessDeniedHandler`를 구현하여 `/denied` `URL`로 이동
  - 즉, 403에러 처리
+
+# 2022.07.06
+
+## 알아야할 사항
+```java
+@Order(0)
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class AjaxSecurityConfig {
+    private final AuthenticationConfiguration authenticationConfiguration;
+
+    @Bean
+    public SecurityFilterChain AjaxFilterChain(HttpSecurity http) throws Exception {
+
+        http
+                /**
+                 * 인가
+                 */
+                .antMatcher("/api/**")
+                .csrf().disable()
+                .authorizeRequests(authorizeRequests ->
+                        authorizeRequests
+                                .anyRequest().authenticated()
+                )
+                /**
+                 * ajax 인증 처리 필터를 UsernamePasswordAuthenticationFilter 앞에 위치시키기
+                 */
+                .addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    /**
+     * ajaxLoginProcessingFilter 빈 등록
+     */
+    @Bean
+    public AjaxLoginProcessingFilter ajaxLoginProcessingFilter() throws Exception {
+        AjaxLoginProcessingFilter ajaxLoginProcessingFilter = new AjaxLoginProcessingFilter("/api/login");
+        ajaxLoginProcessingFilter.setAuthenticationManager(authenticationManager());
+        return ajaxLoginProcessingFilter;
+    }
+
+    /**
+     * AuthenticationManager 빈 등록
+     */
+    @Bean
+    public AuthenticationManager authenticationManager() throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+}
+```
+ - `ajax`를 통해 로그인을 할 수 있도록 다른 filterChain을 구현
+ - `/api/**`의 `URL`이여야만 이 체인이 작동
