@@ -1,6 +1,8 @@
 package com.example.springsecurity.example1.security.configs;
 
-import com.example.springsecurity.example1.security.filter.AjaxLoginProcessingFilter;
+import com.example.springsecurity.example1.security.common.AjaxAccessDeniedHandler;
+import com.example.springsecurity.example1.security.common.AjaxLoginAuthenticationEntryPoint;
+import com.example.springsecurity.example1.security.dsl.AjaxLoginConfigurer;
 import com.example.springsecurity.example1.security.handler.AjaxAuthenticationFailureHandler;
 import com.example.springsecurity.example1.security.handler.AjaxAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +10,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Order(0)
 @EnableWebSecurity
@@ -37,6 +37,7 @@ public class AjaxSecurityConfig {
 
     @Bean
     public SecurityFilterChain ajaxFilterChain(HttpSecurity http) throws Exception {
+
         http
                 /**
                  * 인가
@@ -45,26 +46,25 @@ public class AjaxSecurityConfig {
                 .csrf().disable()
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
+                                .antMatchers("/api/messages").hasRole("MANAGER")
                                 .anyRequest().authenticated()
                 )
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer
+                                .authenticationEntryPoint(new AjaxLoginAuthenticationEntryPoint())
+                                .accessDeniedHandler(new AjaxAccessDeniedHandler())
+                )
                 /**
-                 * ajax 인증 처리 필터를 UsernamePasswordAuthenticationFilter 앞에 위치시키기
+                 * 인증
+                 *  - formLogin 처럼 DSL 제작
+                 *  TODO
+                 *   - 람다 형식으로 변환 해야함
                  */
-                .addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
-        ;
+                .apply(new AjaxLoginConfigurer(authenticationProvider))
+                .successHandlerAjax(ajaxAuthenticationSuccessHandler())
+                .failureHandlerAjax(ajaxAuthenticationFailureHandler());
 
         return http.build();
-    }
-
-    /**
-     * ajaxLoginProcessingFilter 빈 등록
-     */
-    public AjaxLoginProcessingFilter ajaxLoginProcessingFilter() throws Exception {
-        AjaxLoginProcessingFilter ajaxLoginProcessingFilter = new AjaxLoginProcessingFilter("/api/login");
-        ajaxLoginProcessingFilter.setAuthenticationManager(new ProviderManager(authenticationProvider));
-        ajaxLoginProcessingFilter.setAuthenticationSuccessHandler(ajaxAuthenticationSuccessHandler());
-        ajaxLoginProcessingFilter.setAuthenticationFailureHandler(ajaxAuthenticationFailureHandler());
-        return ajaxLoginProcessingFilter;
     }
 
     /**

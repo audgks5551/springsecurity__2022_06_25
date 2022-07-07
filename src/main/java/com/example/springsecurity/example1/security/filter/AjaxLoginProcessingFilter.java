@@ -14,11 +14,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * AjaxLoginProcessingFilter는 UsernamePasswordAuthenticationFilter를 모방함
+ */
 public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingFilter {
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    public AjaxLoginProcessingFilter(String defaultFilterProcessesUrl) {
-        super(new AntPathRequestMatcher(defaultFilterProcessesUrl));
+    public AjaxLoginProcessingFilter() {
+        super(new AntPathRequestMatcher("/api/login"));
     }
 
     @Override

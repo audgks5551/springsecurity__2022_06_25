@@ -638,3 +638,59 @@ public class AjaxSecurityConfig {
 ```
  - `ajax`를 통해 로그인을 할 수 있도록 다른 filterChain을 구현
  - `/api/**`의 `URL`이여야만 이 체인이 작동
+
+# 2022.07.07
+
+## 알아야할 사항
+
+```java
+/**
+ * 인증은 했지만 자원에 대한 권한이 없을 때 403 에러 코드 표시
+ */
+public class AjaxAccessDeniedHandler implements AccessDeniedHandler {
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access is denied");
+    }
+}
+```
+```java
+/**
+ * 인증이 되지 않은 사용자가 자원에 접근할 때 401 에러 코드 표시
+ */
+public class AjaxLoginAuthenticationEntryPoint implements AuthenticationEntryPoint {
+    @Override
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "UnAuthorized");
+    }
+}
+```
+ - `AbstractSecurityInterceptor`는 예외가 발생했을 때 `ExceptionTranslationFilter`를 호출하여 위의 두 코드로 접근
+
+```java
+private void handleAccessDeniedException(HttpServletRequest request, HttpServletResponse response,
+			FilterChain chain, AccessDeniedException exception) throws ServletException, IOException {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		boolean isAnonymous = this.authenticationTrustResolver.isAnonymous(authentication);
+		if (isAnonymous || this.authenticationTrustResolver.isRememberMe(authentication)) {
+			if (logger.isTraceEnabled()) {
+				logger.trace(LogMessage.format("Sending %s to authentication entry point since access is denied",
+						authentication), exception);
+			}
+			sendStartAuthentication(request, response, chain,
+					new InsufficientAuthenticationException(
+							this.messages.getMessage("ExceptionTranslationFilter.insufficientAuthentication",
+									"Full authentication is required to access this resource")));
+		}
+		else {
+			if (logger.isTraceEnabled()) {
+				logger.trace(
+						LogMessage.format("Sending %s to access denied handler since access is denied", authentication),
+						exception);
+			}
+			this.accessDeniedHandler.handle(request, response, exception);
+		}
+	}
+```
+ - 이 부분이 `AccessDeniedHandler`와 `AuthenticationEntryPoint` 중 무엇을 사용할지 판단
