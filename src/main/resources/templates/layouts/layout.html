@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-    <html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+    <html
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    >
+
+    <meta id="_csrf" name="_csrf" th:content="${_csrf.token}" />
+    <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}" />
 
     <head>
         <meta charset="UTF-8" />

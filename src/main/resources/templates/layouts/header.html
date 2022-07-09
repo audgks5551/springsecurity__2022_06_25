@@ -11,14 +11,42 @@
             <div class="navbar-end space-x-2">
                 <div class="btn-group">
                     <a th:href="@{/message}" class="btn btn-primary btn-sm">message</a>
+                    <a id="ajax_menu_message" class="btn btn-primary btn-sm">ajax-message</a>
                     <a th:href="@{/myPage}" class="btn btn-primary btn-sm">mypage</a>
                     <a th:href="@{/config}" class="btn btn-primary btn-sm">config</a>
                     <a sec:authorize="isAnonymous()" th:href="@{/users}" class="btn btn-primary btn-sm">signup</a>
                     <a sec:authorize="isAnonymous()" th:href="@{/login}" class="btn btn-primary btn-sm">login</a>
+                    <a sec:authorize="isAnonymous()" th:href="@{/api/login}" class="btn btn-primary btn-sm">ajax-login</a>
                     <a sec:authorize="isAuthenticated()" th:href="@{/logout}" class="btn btn-primary btn-sm">logout</a>
                 </div>
             </div>
         </div>
+        <script type="text/javascript">
+            $("#ajax_menu_message").click(() => {
+                const csrfHeader = $("meta[name='_csrf_header']").attr("content");
+                const csrfToken = $("meta[name='_csrf']").attr("content");
+
+                $.ajax({
+                    type: "POST",
+                    url: "/api/messages",
+                    dataType: "json",
+                    beforeSend: (xhr) => {
+                        xhr.setRequestHeader(csrfHeader, csrfToken);
+                        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+                        xhr.setRequestHeader("Content-Type", "application/json");
+                    },
+                    error: (xhr, status, error) => {
+                        console.log(error);
+
+                        if (xhr.responseJSON.status == "401") {
+                            window.location = "/api/login?error=true&exception=" + xhr.responseJSON.message;
+                        } else if (xhr.responseJSON.status == "403") {
+                            window.location = "/api/denied?&exception=" + xhr.responseJSON.message;
+                        }
+                    }
+                })
+            })
+        </script>
     </header>
 
 </html>
